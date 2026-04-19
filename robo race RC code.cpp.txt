@@ -1,0 +1,95 @@
+// ================= RECEIVER CHANNELS =================
+#define CH1 34   // Sharp turn (Joystick L/R)
+#define CH2 35   // Forward / Backward
+
+// ================= DEAD ZONE =================
+#define LOW_LIMIT   1400
+#define HIGH_LIMIT  1600
+
+// ================= SIGNAL RANGE =================
+#define MIN_SIGNAL 900
+#define MAX_SIGNAL 2100
+
+// ================= MOTOR DRIVER (BOT) =================
+#define R_IN1 27
+#define R_IN2 14
+#define L_IN1 25
+#define L_IN2 26
+
+// ================= SETUP =================
+void setup() {
+  pinMode(CH1, INPUT);
+  pinMode(CH2, INPUT);
+
+  pinMode(R_IN1, OUTPUT);
+  pinMode(R_IN2, OUTPUT);
+  pinMode(L_IN1, OUTPUT);
+  pinMode(L_IN2, OUTPUT);
+
+  stopAll();
+  delay(3000);   // Receiver stabilization
+}
+
+// ================= MAIN LOOP =================
+void loop() {
+  int sharp = pulseIn(CH1, HIGH, 25000);
+  int move  = pulseIn(CH2, HIGH, 25000);
+
+  // ================= DRIVE =================
+  if (validSignal(move)) {
+    if (move > HIGH_LIMIT) forward();
+    else if (move < LOW_LIMIT) backward();
+    else stopDrive();
+  } else {
+    stopDrive();
+  }
+
+  // ================= SHARP TURN (CH1) =================
+  if (validSignal(sharp)) {
+    if (sharp > HIGH_LIMIT) {
+      sharpRight();
+    }
+    else if (sharp < LOW_LIMIT) {
+      sharpLeft();
+    }
+  }
+
+  delay(10);
+}
+
+// ================= SIGNAL CHECK =================
+bool validSignal(int ch) {
+  return (ch >= MIN_SIGNAL && ch <= MAX_SIGNAL);
+}
+
+// ================= DRIVE =================
+void forward() {
+  digitalWrite(R_IN1, HIGH); digitalWrite(R_IN2, LOW);
+  digitalWrite(L_IN1, HIGH); digitalWrite(L_IN2, LOW);
+}
+
+void backward() {
+  digitalWrite(R_IN1, LOW); digitalWrite(R_IN2, HIGH);
+  digitalWrite(L_IN1, LOW); digitalWrite(L_IN2, HIGH);
+}
+
+void stopDrive() {
+  digitalWrite(R_IN1, LOW); digitalWrite(R_IN2, LOW);
+  digitalWrite(L_IN1, LOW); digitalWrite(L_IN2, LOW);
+}
+
+// ================= SHARP TURNS =================
+void sharpLeft() {
+  digitalWrite(R_IN1, HIGH); digitalWrite(R_IN2, LOW);
+  digitalWrite(L_IN1, LOW);  digitalWrite(L_IN2, HIGH);
+}
+
+void sharpRight() {
+  digitalWrite(L_IN1, HIGH); digitalWrite(L_IN2, LOW);
+  digitalWrite(R_IN1, LOW);  digitalWrite(R_IN2, HIGH);
+}
+
+// ================= STOP ALL =================
+void stopAll() {
+  stopDrive();
+}
