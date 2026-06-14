@@ -1,0 +1,87 @@
+#include "BluetoothSerial.h"
+BluetoothSerial BT;
+
+// Motor A (Left)
+int IN1 = 26;
+int IN2 = 25;
+
+// Motor B (Right)
+int IN3 = 14;
+int IN4 = 27;
+
+void setup() {
+  Serial.begin(115200);
+
+  // Start ESP32 Bluetooth
+  BT.begin("ESP32_CAR");
+
+  // Motor pins
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  stopCar();
+}
+
+void loop() {
+  if (BT.available()) {
+    char cmd = BT.read();
+    Serial.println(cmd);
+
+    switch(cmd) {
+      case 'F': forward(); break;
+      case 'B': backward(); break;
+      case 'L': left(); break;
+      case 'R': right(); break;
+      case 'S': stopCar(); break;
+    }
+  }
+}
+
+// ------------------ MOVEMENT FUNCTIONS -------------------
+
+void forward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void backward() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void left() {
+  // Left motor stop
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+
+  // Right motor forward
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void right() {
+  // Left motor forward
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+
+  // Right motor stop
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void stopCar() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}

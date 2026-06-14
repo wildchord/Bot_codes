@@ -1,0 +1,113 @@
+// FS-i6 RC Car with Arduino UNO + L298N
+
+#define CH1 2   // Steering
+#define CH2 3   // Throttle
+
+// Motor pins
+#define IN1 8
+#define IN2 9
+#define IN3 10
+#define IN4 11
+#define ENA 5
+#define ENB 6
+
+int ch1Value = 1500;
+int ch2Value = 1500;
+
+int deadZone = 50;
+
+void setup() {
+  pinMode(CH1, INPUT);
+  pinMode(CH2, INPUT);
+
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  ch1Value = pulseIn(CH1, HIGH, 25000);
+  ch2Value = pulseIn(CH2, HIGH, 25000);
+
+  if (ch1Value == 0) ch1Value = 1500;
+  if (ch2Value == 0) ch2Value = 1500;
+
+  int speedValue = 0;
+
+  // Throttle control
+  if (ch2Value > 1500 + deadZone) {
+    speedValue = map(ch2Value, 1500 + deadZone, 2000, 0, 255);
+    forward(speedValue);
+  }
+  else if (ch2Value < 1500 - deadZone) {
+    speedValue = map(ch2Value, 1500 - deadZone, 1000, 0, 255);
+    backward(speedValue);
+  }
+  else {
+    stopMotors();
+  }
+
+  // Steering control
+  if (ch1Value > 1500 + deadZone) {
+    turnRight(150);
+  }
+  else if (ch1Value < 1500 - deadZone) {
+    turnLeft(150);
+  }
+
+  Serial.print("CH1: "); Serial.print(ch1Value);
+  Serial.print(" | CH2: "); Serial.println(ch2Value);
+}
+
+// Functions
+
+void forward(int speedVal) {
+  analogWrite(ENA, speedVal);
+  analogWrite(ENB, speedVal);
+
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void backward(int speedVal) {
+  analogWrite(ENA, speedVal);
+  analogWrite(ENB, speedVal);
+
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void turnRight(int speedVal) {
+  analogWrite(ENA, speedVal);
+  analogWrite(ENB, speedVal);
+
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void turnLeft(int speedVal) {
+  analogWrite(ENA, speedVal);
+  analogWrite(ENB, speedVal);
+
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void stopMotors() {
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
